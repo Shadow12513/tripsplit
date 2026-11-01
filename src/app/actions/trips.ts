@@ -10,6 +10,7 @@ import { isDate, str, type ActionState } from "@/lib/action";
 import { logEvent } from "@/lib/history";
 import { requireMember, newInviteToken } from "@/lib/members";
 import { isCurrency } from "@/lib/money";
+import { canCreateTrips } from "@/lib/trip-creators";
 
 function parseTripForm(formData: FormData) {
   const name = str(formData, "name");
@@ -28,6 +29,7 @@ function parseTripForm(formData: FormData) {
 
 export async function createTrip(_: ActionState, formData: FormData): Promise<ActionState> {
   const user = await requireUser();
+  if (!canCreateTrips(user.email)) return { error: "Only the site owner can start new trips." };
   const parsed = parseTripForm(formData);
   if ("error" in parsed) return { error: parsed.error };
 

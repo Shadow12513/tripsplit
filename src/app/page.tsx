@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { tripMembers, trips } from "@/db/schema";
 import { formatDateRange } from "@/lib/format";
+import { canCreateTrips } from "@/lib/trip-creators";
 
 export default async function HomePage() {
   const session = await auth();
@@ -17,17 +18,21 @@ export default async function HomePage() {
     .where(eq(tripMembers.userId, session.user.id))
     .orderBy(desc(trips.startDate), desc(trips.createdAt));
 
+  const canCreate = canCreateTrips(session.user.email);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Your trips</h1>
-        <Link href="/trips/new" className="btn-primary">+ New trip</Link>
+        {canCreate && <Link href="/trips/new" className="btn-primary">+ New trip</Link>}
       </div>
       {myTrips.length === 0 ? (
         <div className="card p-8 text-center">
           <p className="font-medium">No trips yet</p>
           <p className="muted mt-1 text-sm">
-            Start one and invite your friends, or ask the organizer for their invite link.
+            {canCreate
+              ? "Start one and invite your friends, or ask the organizer for their invite link."
+              : "Ask the organizer for their invite link to join a trip."}
           </p>
         </div>
       ) : (
